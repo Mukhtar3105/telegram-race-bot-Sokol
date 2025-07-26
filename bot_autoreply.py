@@ -1,5 +1,6 @@
 import requests
 import time
+import json  # <--- обязательно
 
 BOT_TOKEN = '7986450530:AAEHTmcGHEyHdCvjU7HRYcqRf17hsQCgoN8'
 URL = f'https://api.telegram.org/bot{BOT_TOKEN}'
@@ -20,10 +21,10 @@ def send_menu(chat_id):
     data = {
         "chat_id": chat_id,
         "text": "Выберите действие из меню 👇",
-        "reply_markup": keyboard
+        "reply_markup": json.dumps(keyboard)  # <-- важно
     }
 
-    requests.post(f'{URL}/sendMessage', json=data)
+    requests.post(f'{URL}/sendMessage', data=data)
 
 while True:
     try:
@@ -43,7 +44,6 @@ while True:
                 if text == '/menu':
                     send_menu(chat_id)
                 else:
-                    # Отправка приветствия (если не /menu)
                     requests.post(f'{URL}/sendMessage', data={
                         'chat_id': chat_id,
                         'text': WELCOME_MESSAGE
