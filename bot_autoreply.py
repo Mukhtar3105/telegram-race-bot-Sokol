@@ -1,35 +1,37 @@
 from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-# 🔐 Вставь сюда свой токен
-BOT_TOKEN = "7986450530:AAEHTmcGHEyHdCvjU7HRYcqRf17hsQCgoN8"
+# Ваш токен
+BOT_TOKEN = '7986450530:AAEHTmcGHEyHdCvjU7HRYcqRf17hsQCgoN8'
 
 # Приветственное сообщение
 WELCOME_MESSAGE = '🏁 Добро пожаловать! Вы будете получать уведомления о дрэг-заездах.'
 
-# Клавиатура меню
+# Кнопочное меню
 keyboard = [
     ["🔍 Регистрация", "💨 Результаты"],
     ["📊 Классы", "🔥 ТОП 10"],
     ["💬 Чат", "🏁 Online"]
 ]
-markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
-# Команда /start или /menu
+# Команда /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(WELCOME_MESSAGE, reply_markup=markup)
+    await update.message.reply_text(WELCOME_MESSAGE, reply_markup=reply_markup)
 
-# Все остальные текстовые сообщения
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(WELCOME_MESSAGE, reply_markup=markup)
+# Команда /menu
+async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Выберите действие из меню 👇", reply_markup=reply_markup)
 
 # Запуск бота
-if __name__ == "__main__":
+def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("menu", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.add_handler(CommandHandler("menu", menu))
 
-    print("✅ Бот запущен и работает.")
+    print("✅ Бот запущен и слушает команды...")
     app.run_polling()
+
+if __name__ == '__main__':
+    main()
