@@ -1,58 +1,42 @@
-import requests
-import time
-import json  # <--- обязательно
+from telegram import Update, ReplyKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
+# 🔐 ВСТАВЬ СВОЙ ТОКЕН
 BOT_TOKEN = '7986450530:AAEHTmcGHEyHdCvjU7HRYcqRf17hsQCgoN8'
-URL = f'https://api.telegram.org/bot{BOT_TOKEN}'
+
 WELCOME_MESSAGE = '🏁 Добро пожаловать! Вы будете получать уведомления о дрэг-заездах.'
 
-last_update_id = None
+# Меню-клавиатура
+keyboard = [
+    ["🔍 Регистрация", "💨 Результаты"],
+    ["📊 Классы", "🔥 ТОП 10"],
+    ["💬 Чат", "🏁 Online"]
+]
+markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
-def send_menu(chat_id):
-    keyboard = {
-        "keyboard": [
-            [{"text": "🔍 Регистрация"}, {"text": "💨 Результаты"}],
-            [{"text": "📊 Классы"}, {"text": "🔥 ТОП 10"}],
-            [{"text": "💬 Чат"}, {"text": "🏁 Online"}]
-        ],
-        "resize_keyboard": True
-    }
 
-    data = {
-        "chat_id": chat_id,
-        "text": "Выберите действие из меню 👇",
-        "reply_markup": json.dumps(keyboard)  # <-- важно
-    }
+# Команда /start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(WELCOME_MESSAGE, reply_markup=markup)
 
-    requests.post(f'{URL}/sendMessage', data=data)
 
-while True:
-    try:
-        response = requests.get(f'{URL}/getUpdates', params={'offset': last_update_id, 'timeout': 10})
-        data = response.json()
+# Команда /menu
+async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Выберите действие из меню 👇", reply_markup=markup)
 
-        for result in data.get('result', []):
-            update_id = result['update_id']
-            message = result.get('message', {})
-            chat = message.get('chat', {})
-            chat_id = chat.get('id')
-            text = message.get('text', '')
 
-            if last_update_id is None or update_id > last_update_id:
-                print(f'📩 Новое сообщение от {chat_id}: {text}')
+# Ответ на любые другие сообщения
+async def fallback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(WELCOME_MESSAGE, reply_markup=markup)
 
-                if text == '/menu':
-                    send_menu(chat_id)
-                else:
-                    requests.post(f'{URL}/sendMessage', data={
-                        'chat_id': chat_id,
-                        'text': WELCOME_MESSAGE
-                    })
 
-                last_update_id = update_id + 1
+# Точка входа
+if __name__ == '__main__':
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-        time.sleep(1)
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("menu", menu))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, fallback))
 
-    except Exception as e:
-        print(f'Ошибка: {e}')
-        time.sleep(2)
+    print("✅ Бот запущен...")
+    app.run_polling()
