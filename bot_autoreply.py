@@ -1,12 +1,13 @@
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
-# 🔐 ВСТАВЬ СВОЙ ТОКЕН
-BOT_TOKEN = '7986450530:AAEHTmcGHEyHdCvjU7HRYcqRf17hsQCgoN8'
+# 🔐 Вставь сюда свой токен
+BOT_TOKEN = "7986450530:AAEHTmcGHEyHdCvjU7HRYcqRf17hsQCgoN8"
 
+# Приветственное сообщение
 WELCOME_MESSAGE = '🏁 Добро пожаловать! Вы будете получать уведомления о дрэг-заездах.'
 
-# Меню-клавиатура
+# Клавиатура меню
 keyboard = [
     ["🔍 Регистрация", "💨 Результаты"],
     ["📊 Классы", "🔥 ТОП 10"],
@@ -14,29 +15,21 @@ keyboard = [
 ]
 markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
-
-# Команда /start
+# Команда /start или /menu
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(WELCOME_MESSAGE, reply_markup=markup)
 
-
-# Команда /menu
-async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Выберите действие из меню 👇", reply_markup=markup)
-
-
-# Ответ на любые другие сообщения
-async def fallback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# Все остальные текстовые сообщения
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(WELCOME_MESSAGE, reply_markup=markup)
 
-
-# Точка входа
-if __name__ == '__main__':
+# Запуск бота
+if __name__ == "__main__":
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("menu", menu))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, fallback))
+    app.add_handler(CommandHandler("menu", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    print("✅ Бот запущен...")
+    print("✅ Бот запущен и работает.")
     app.run_polling()
